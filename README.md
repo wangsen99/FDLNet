@@ -23,5 +23,6 @@ awesome-semantic-segmentation-pytorch"](https://github.com/Tramac/awesome-semant
 
 ### Test
 ```
+cd scripts
 python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
 ```
