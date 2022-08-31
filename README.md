@@ -20,3 +20,9 @@ awesome-semantic-segmentation-pytorch"](https://github.com/Tramac/awesome-semant
 | :---: | :---: | :---: | :---: |
 | NightCity | 54.60  | 55.42 | [FDLNet (DeeplabV3+)](https://drive.google.com/file/d/15gZHRTOHeasemjv7-GW_Ooxk7m96ZIO2/view?usp=sharing) |
 | NightCity+ | 56.20 | 56.79 | ~|
+
+### Test
+```
+python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
+
+```
