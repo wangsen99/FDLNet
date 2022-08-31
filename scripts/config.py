@@ -1,6 +1,6 @@
 
-# nightcity
+# nightcity dataset path 
 data_root = ''
 
-# model
+# pretrained model path 
 model_root = ''
