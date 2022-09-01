@@ -91,7 +91,6 @@ class SFF(nn.Module):
 
         feat_e = torch.bmm(attention, feat_a).view(batch_size, -1, height, width) # B C H*W
         out = self.alpha * feat_e + x
-        # print(self.alpha)
         return out
 
 
