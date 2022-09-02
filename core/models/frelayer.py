@@ -1,3 +1,14 @@
+"""
+ @Time    : 22/9/2
+ @Author  : WangSen
+ @Email   : wangsen@shu.edu.cn
+ 
+ @Project : FDLNet
+ @File    : frelayer.py
+ @Function: LFE 
+ 
+"""
+
 import math
 import torch
 import torch.nn as nn
