@@ -30,5 +30,10 @@ python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
 ## Citation
 If you find this repo useful for your research, please consider citing our paper:
 ```
-Coming soon
+@article{xie2022boosting,
+  title={Boosting Night-time Scene Parsing with Learnable Frequency},
+  author={Xie, Zhifeng and Wang, Sen and Xu, Ke and Zhang, Zhizhong and Tan, Xin and Xie, Yuan and Ma, Lizhuang},
+  journal={arXiv preprint arXiv:2208.14241},
+  year={2022}
+}
 ```
