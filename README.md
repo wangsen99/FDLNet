@@ -1,6 +1,6 @@
 # Boosting Night-time Scene Parsing with Learnable Frequency
 
-This repo is the official implementation of ["Boosting Night-time Scene Parsing with Learnable Frequency
+This repo is the official implementation of ["Boosting Night-time Scene Parsing with Learnable Frequency (IEEE TIP 2023)
 "](https://arxiv.org/abs/2208.14241).
 
 ## Installation
@@ -30,10 +30,13 @@ python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
 ## Citation
 If you find this repo useful for your research, please consider citing our paper:
 ```
-@article{xie2022boosting,
-  title={Boosting Night-time Scene Parsing with Learnable Frequency},
+@ARTICLE{10105211,
   author={Xie, Zhifeng and Wang, Sen and Xu, Ke and Zhang, Zhizhong and Tan, Xin and Xie, Yuan and Ma, Lizhuang},
-  journal={arXiv preprint arXiv:2208.14241},
-  year={2022}
-}
+  journal={IEEE Transactions on Image Processing}, 
+  title={Boosting Night-time Scene Parsing with Learnable Frequency}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TIP.2023.3267044}}
 ```
