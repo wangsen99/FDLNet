@@ -1,7 +1,7 @@
 # Boosting Night-time Scene Parsing with Learnable Frequency
 
 This repo is the official implementation of ["Boosting Night-time Scene Parsing with Learnable Frequency (IEEE TIP 2023)
-"](https://arxiv.org/abs/2208.14241).
+"](https://ieeexplore.ieee.org/document/10105211).
 
 ## Installation
 
