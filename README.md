@@ -35,10 +35,10 @@ If you find this repo useful for your research, please consider citing our paper
 @ARTICLE{10105211,
   author={Xie, Zhifeng and Wang, Sen and Xu, Ke and Zhang, Zhizhong and Tan, Xin and Xie, Yuan and Ma, Lizhuang},
   journal={IEEE Transactions on Image Processing}, 
-  title={Boosting Night-time Scene Parsing with Learnable Frequency}, 
+  title={Boosting Night-Time Scene Parsing With Learnable Frequency}, 
   year={2023},
-  volume={},
+  volume={32},
   number={},
-  pages={1-1},
+  pages={2386-2398},
   doi={10.1109/TIP.2023.3267044}}
 ```
