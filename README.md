@@ -38,7 +38,6 @@ If you find this repo useful for your research, please consider citing our paper
   title={Boosting Night-Time Scene Parsing With Learnable Frequency}, 
   year={2023},
   volume={32},
-  number={},
   pages={2386-2398},
   doi={10.1109/TIP.2023.3267044}}
 ```
