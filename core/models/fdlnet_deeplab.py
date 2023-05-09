@@ -1,3 +1,14 @@
+"""
+ @Time    : 22/9/2
+ @Author  : WangSen
+ @Email   : wangsen@shu.edu.cn
+ 
+ @Project : FDLNet
+ @File    : fdlnet_deeplab.py
+ @Function: FDLNet 
+ 
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,11 +18,11 @@ from .fcn import _FCNHead
 from .frelayer import LFE
 
 from ..nn import _ConvBNReLU
-__all__ = ['FDLNetNet', 'get_fdlnet', 'get_fdlnet_resnet101_citys']
+__all__ = ['FDLNet', 'get_fdlnet', 'get_fdlnet_resnet101_citys']
 
-class FDLNetNet(SegBaseModel):
+class FDLNet(SegBaseModel):
     def __init__(self, nclass, criterion=None, backbone='resnet50', aux=False, pretrained_base=False, **kwargs):
-        super(FDLNetNet, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
+        super(FDLNet, self).__init__(nclass, aux, backbone, pretrained_base=pretrained_base, **kwargs)
         self.criterion = criterion
         self.fcm = _FDLHead(2048, 2048, nclass, norm_layer=nn.BatchNorm2d, norm_kwargs=None)
 
@@ -204,7 +215,7 @@ def get_fdlnet(dataset='pascal_voc', backbone='resnet50', pretrained=False, root
             pretrained_base=True, **kwargs):
 
     from ..data.dataloader import datasets
-    model = FDLNetNet(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)
+    model = FDLNet(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)
     if pretrained:
         from .model_store import get_model_file
         device = torch.device(0)
