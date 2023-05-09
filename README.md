@@ -22,18 +22,18 @@ cd scripts
 python train_edge.py --model fdlnet --backbone resnet50 --dataset night --aux
 ```
 
+## Test
+```
+cd scripts
+python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
+```
+
 ## Results and Models
 
 | Dataset | mIoU | w/ ms | Model |
 | :---: | :---: | :---: | :---: |
 | NightCity | 54.60  | 55.42 | [FDLNet (DeeplabV3+)](https://drive.google.com/file/d/15gZHRTOHeasemjv7-GW_Ooxk7m96ZIO2/view?usp=sharing) |
 | NightCity+ | 56.20 | 56.79 | ~|
-
-### Test
-```
-cd scripts
-python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
-```
 
 ## Citation
 If you find this repo useful for your research, please consider citing our paper:
