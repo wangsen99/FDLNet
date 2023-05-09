@@ -22,7 +22,6 @@ class FDLNetNet(SegBaseModel):
 
     def forward(self, x, gts=None, segSize=None):
         size = x.size()[2:]
-        # print(size)
         outputs = []
         c1, c2, c3, c4 = self.base_forward(x)
         fcm= self.fcm(c4, c1)
@@ -68,8 +67,6 @@ class _FDLHead(nn.Module):
 
         seg_out = self.final_seg(torch.cat([fa, c1], dim=1))
 
-        # seg_out = self.final_seg(fa)
-
         return seg_out
 
 
@@ -92,7 +89,6 @@ class SFF(nn.Module):
 
         feat_e = torch.bmm(attention, feat_a).view(batch_size, -1, height, width) # B C H*W
         out = self.alpha * feat_e + x
-        # print(self.alpha)
         return out
 
 
@@ -110,7 +106,6 @@ class _SFFHead(nn.Module):
             nn.ReLU(True)
         )
         self.freatt = SFF(inter_channels, **kwargs)
-        # self.cam = _ChannelAttentionModule(**kwargs)
         self.conv_p2 = nn.Sequential(
             nn.Conv2d(inter_channels, inter_channels, 1, bias=False),
             norm_layer(inter_channels, **({} if norm_kwargs is None else norm_kwargs)),

@@ -1,7 +1,7 @@
 # Boosting Night-time Scene Parsing with Learnable Frequency
 
-This repo is the official implementation of ["Boosting Night-time Scene Parsing with Learnable Frequency
-"](https://arxiv.org/abs/2208.14241)
+This repo is the official implementation of ["Boosting Night-time Scene Parsing with Learnable Frequency (IEEE TIP 2023)
+"](https://ieeexplore.ieee.org/document/10105211).
 
 ## Installation
 
@@ -14,9 +14,30 @@ awesome-semantic-segmentation-pytorch"](https://github.com/Tramac/awesome-semant
 
 ["NightCity+"](https://drive.google.com/file/d/1EDhWx-fcS7pIIBGbu3TpebNrmyE08KzC/view) (Only reannotated val set)
 
+["BDD100K-night"](https://drive.google.com/file/d/1l4Mh3V7OcCbD6GpxPzovloLlRWSAZ4vZ/view?usp=share_link) (Only images, please download the labels from [here](https://bdd-data.berkeley.edu/) with permission)
+
 ## Results and Models
 
 | Dataset | mIoU | w/ ms | Model |
 | :---: | :---: | :---: | :---: |
 | NightCity | 54.60  | 55.42 | [FDLNet (DeeplabV3+)](https://drive.google.com/file/d/15gZHRTOHeasemjv7-GW_Ooxk7m96ZIO2/view?usp=sharing) |
 | NightCity+ | 56.20 | 56.79 | ~|
+
+### Test
+```
+cd scripts
+python eval.py --model fdlnet --backbone resnet101 --dataset night --aux
+```
+
+## Citation
+If you find this repo useful for your research, please consider citing our paper:
+```
+@ARTICLE{10105211,
+  author={Xie, Zhifeng and Wang, Sen and Xu, Ke and Zhang, Zhizhong and Tan, Xin and Xie, Yuan and Ma, Lizhuang},
+  journal={IEEE Transactions on Image Processing}, 
+  title={Boosting Night-Time Scene Parsing With Learnable Frequency}, 
+  year={2023},
+  volume={32},
+  pages={2386-2398},
+  doi={10.1109/TIP.2023.3267044}}
+```

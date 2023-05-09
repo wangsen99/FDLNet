@@ -139,7 +139,7 @@ class OhemCrossEntropy2d(nn.Module):
         if self.min_kept > num_valid:
             print("Lables: {}".format(num_valid))
         elif num_valid > 0:
-            prob = prob.masked_fill_(1 - valid_mask, 1)
+            prob = prob.masked_fill_(~valid_mask, 1)
             mask_prob = prob[target, torch.arange(len(target), dtype=torch.long)]
             threshold = self.thresh
             if self.min_kept > 0:
@@ -151,11 +151,50 @@ class OhemCrossEntropy2d(nn.Module):
             valid_mask = valid_mask * kept_mask
             target = target * kept_mask.long()
 
-        target = target.masked_fill_(1 - valid_mask, self.ignore_index)
+        target = target.masked_fill_(~valid_mask, self.ignore_index)
         target = target.view(n, h, w)
 
         return self.criterion(pred, target)
 
+class FDLNetLoss(nn.Module):
+    def __init__(self, classes=19, ignore_index=255, norm=False, upper_bound=1.0, mode='train', 
+                aux_weight=0.4, seg_weight=1, att_weight=0.01, **kwargs):
+        super(FDLNetLoss, self).__init__()
+        self.num_classes = classes
+        self.ignore_index = ignore_index
+        if mode == 'train':
+            self.seg_loss = OhemCrossEntropy2d(
+                                               ignore_index=ignore_index)
+        elif mode == 'val':
+            self.seg_loss = OhemCrossEntropy2d(
+                                               ignore_index=ignore_index)
+
+        self.aux_loss = OhemCrossEntropy2d(ignore_index=ignore_index)
+        self.att_loss = OhemCrossEntropy2d(min_kept=5000,ignore_index=ignore_index)
+        self.aux_weight = aux_weight
+        self.seg_weight = seg_weight
+        self.att_weight = att_weight
+
+
+    def edge_attention(self, input, target, edge):
+        n, c, h, w = input.size()
+        filler = torch.ones_like(target) * self.ignore_index
+        return self.att_loss(input, 
+                             torch.where(edge.max(1)[0] == 1., target, filler))
+
+    def forward(self, inputs, targets):
+        pred1, pred2 = inputs
+        # print(pred1.shape, pred2.shape)
+        target, edgemap =targets
+
+        losses = {}
+
+        losses['seg_loss'] = self.seg_weight * self.seg_loss(pred1, target)
+        losses['aux_loss'] = self.aux_weight * self.aux_loss(pred2, target)
+
+        losses['att_loss'] = self.att_weight * self.edge_attention(pred1, target, edgemap)
+        
+        return losses
 
 class MixSoftmaxCrossEntropyOHEMLoss(OhemCrossEntropy2d):
     def __init__(self, aux=False, aux_weight=0.4, weight=None, ignore_index=-1, **kwargs):
@@ -191,5 +230,7 @@ def get_segmentation_loss(model, use_ohem=False, **kwargs):
         return EncNetLoss(**kwargs)
     elif model == 'icnet':
         return ICNetLoss(**kwargs)
+    elif model == 'fdlnet':
+        return FDLNetLoss(**kwargs)
     else:
         return MixSoftmaxCrossEntropyLoss(**kwargs)

@@ -1,6 +1,7 @@
 """Base segmentation dataset"""
 import random
 import numpy as np
+from torchvision import transforms
 
 from PIL import Image, ImageOps, ImageFilter
 
@@ -18,6 +19,10 @@ class SegmentationDataset(object):
         self.mode = mode if mode is not None else split
         self.base_size = base_size
         self.crop_size = crop_size
+        self.ms_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
+        ])
 
     def _val_sync_transform(self, img, mask):
         outsize = self.crop_size
@@ -77,6 +82,72 @@ class SegmentationDataset(object):
         img, mask = self._img_transform(img), self._mask_transform(mask)
         return img, mask
 
+    def _sync_transform_2(self, img, mask):
+        # random mirror
+        if random.random() < 0.5:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+            mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
+        crop_size = self.crop_size
+        short_size = random.randint(int(self.base_size * 0.5), int(self.base_size * 2.0))
+        
+        w, h = img.size
+        if h > w:
+            ow = short_size
+            oh = int(1.0 * h * ow / w)
+        else:
+            oh = short_size
+            ow = int(1.0 * w * oh / h)
+        img = img.resize((ow, oh), Image.BILINEAR)
+        mask = mask.resize((ow, oh), Image.NEAREST)
+
+        if h > w:
+            cw = crop_size
+            ch = int(1.0 * h * cw / w)
+        else:
+            ch = crop_size
+            cw = int(1.0 * w * ch / h)
+        if short_size < crop_size:
+            padh = ch - oh if oh < ch else 0
+            padw = cw - ow if ow < cw else 0
+            img = ImageOps.expand(img, border=(0, 0, padw, padh), fill=0)
+            mask = ImageOps.expand(mask, border=(0, 0, padw, padh), fill=0)
+        # random crop crop_size
+ 
+        w, h = img.size
+        x1 = random.randint(0, w - cw)
+        y1 = random.randint(0, h - ch)
+        img = img.crop((x1, y1, x1 + cw, y1 + ch))
+        mask = mask.crop((x1, y1, x1 + cw, y1 + ch))
+        # gaussian blur as in PSP
+        if random.random() < 0.5:
+            img = img.filter(ImageFilter.GaussianBlur(radius=random.random()))
+        # final transform
+        img, mask = self._img_transform(img), self._mask_transform(mask)
+        return img, mask
+    
+    def _val_ms_transform(self, img, mask):
+        img_resized_list = []
+        w, h = img.size
+        # print(w,h)
+        for scale in self.multiscale:
+            target_h = int(h * scale)
+            target_w = int(w * scale)
+            img_resized = img.resize((target_w, target_h), Image.BILINEAR)
+            img_resized = self.img_transform(img_resized)
+            img_resized_list.append(img_resized)
+        mask = self._mask_transform(mask)
+
+        # final transform
+        output = dict()
+        output['img_ori'] = np.array(img)
+        output['img_data'] = [x.contiguous() for x in img_resized_list]
+        output['seg_label'] = mask
+        return output
+    
+    def img_transform(self, img):
+        img = self.ms_transform(img)
+        return img
+    
     def _img_transform(self, img):
         return np.array(img)
 
