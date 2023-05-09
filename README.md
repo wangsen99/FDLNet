@@ -16,6 +16,12 @@ awesome-semantic-segmentation-pytorch"](https://github.com/Tramac/awesome-semant
 
 ["BDD100K-night"](https://drive.google.com/file/d/1l4Mh3V7OcCbD6GpxPzovloLlRWSAZ4vZ/view?usp=share_link) (Only images, please download the labels from [here](https://bdd-data.berkeley.edu/) with permission)
 
+## Train
+```
+cd scripts
+python train_edge.py --model fdlnet --backbone resnet50 --dataset night --aux
+```
+
 ## Results and Models
 
 | Dataset | mIoU | w/ ms | Model |
