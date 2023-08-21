@@ -355,7 +355,7 @@ class Trainer(object):
             self.best_pred = new_pred
         save_checkpoint(self.model, self.optimizer, self.args, iteration, mIoU, is_best)
         synchronize()
-        return mIoU 
+        return mIoU
 
     def ms_val(self, iteration):
         is_best = False
@@ -368,8 +368,8 @@ class Trainer(object):
 
         torch.cuda.empty_cache()  # TODO check if it helps
         model.eval()
-        for i, batch_data in enumerate(tqdm(self.val_loader, ascii= True)):
-            
+        for i, batch_data in enumerate(self.val_loader):
+
             img_resized_list = batch_data['img_data']
             target = batch_data['seg_label']
             filename = batch_data['info']
@@ -381,26 +381,25 @@ class Trainer(object):
                 for image in img_resized_list:
                     image = image.to(self.device)
                     target = target.to(self.device)
-                    # print(image.shape)
                     a, b = model(image)
-                    logits = a[0]
+                    logits = a
                     logits = F.interpolate(logits, size=size,
-                                            mode='bilinear', align_corners=True)
+                                           mode='bilinear', align_corners=True)
                     scores += torch.softmax(logits, dim=1)
                     # scores = scores + outimg / 6
                     if self.flip:
                         # print('use flip')
-                        image = torch.flip(image, dims=(3, ))
+                        image = torch.flip(image, dims=(3,))
                         a, b = model(image)
-                        logits = a[0]
-                        logits = torch.flip(logits, dims=(3, ))
+                        logits = a
+                        logits = torch.flip(logits, dims=(3,))
                         logits = F.interpolate(logits, size=size,
-                                                mode='bilinear', align_corners=True)
+                                               mode='bilinear', align_corners=True)
                         scores += torch.softmax(logits, dim=1)
-            
-        self.metric.update(scores, target)
 
-        pixAcc, IoU, mIoU, this = self.metric.get()
+            self.metric.update(scores, target)
+
+        pixAcc, IoU, mIoU = self.metric.get()
         logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.6f}".format(i + 1, pixAcc, mIoU))
         IoU = IoU.detach().numpy()
         num = IoU.size
@@ -414,7 +413,7 @@ class Trainer(object):
             self.best_pred = new_pred
         save_checkpoint(self.model, self.optimizer, self.args, iteration, mIoU, is_best)
         synchronize()
-        return mIoU 
+        return mIoU
 
 def save_checkpoint(model, optimizer, args, iteration, mIoU, is_best=False):
     """Save Checkpoint"""

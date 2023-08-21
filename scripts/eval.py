@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 import torch.backends.cudnn as cudnn
+import torch.nn.functional as F
 
 from torchvision import transforms
 from core.data.dataloader import get_segmentation_dataset
@@ -20,14 +21,16 @@ from core.utils.visualize import get_color_pallete
 from core.utils.logger import setup_logger
 from core.utils.distributed import synchronize, get_rank, make_data_sampler, make_batch_data_sampler
 
-from train import parse_args
+from train_edge import parse_args
 
 from config import data_root, model_root
+
 
 class Evaluator(object):
     def __init__(self, args):
         self.args = args
         self.device = torch.device(args.device)
+        self.flip = args.flip
 
         # image transform
         input_transform = transforms.Compose([
@@ -36,7 +39,9 @@ class Evaluator(object):
         ])
 
         # dataset and dataloader
-        val_dataset = get_segmentation_dataset(args.dataset, root=data_root,  split='val', mode='testval', transform=input_transform)
+        val_dataset = get_segmentation_dataset(args.dataset, root=data_root, split='val', mode='ms_val',
+                                               transform=input_transform)
+        self.num_class = val_dataset.num_class
         val_sampler = make_data_sampler(val_dataset, False, args.distributed)
         val_batch_sampler = make_batch_data_sampler(val_sampler, images_per_batch=1)
         self.val_loader = data.DataLoader(dataset=val_dataset,
@@ -46,43 +51,68 @@ class Evaluator(object):
 
         # create network
         BatchNorm2d = nn.SyncBatchNorm if args.distributed else nn.BatchNorm2d
-        self.model = get_segmentation_model(model=args.model, dataset=args.dataset, backbone=args.backbone, root=model_root,
+        self.model = get_segmentation_model(model=args.model, dataset=args.dataset, backbone=args.backbone,
+                                            root=model_root,
                                             aux=args.aux, pretrained=True, pretrained_base=False,
                                             norm_layer=BatchNorm2d).to(self.device)
         if args.distributed:
             self.model = nn.parallel.DistributedDataParallel(self.model,
-                device_ids=[args.local_rank], output_device=args.local_rank)
+                                                             device_ids=[args.local_rank],
+                                                             output_device=args.local_rank)
         self.model.to(self.device)
 
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
+        mIoU = 0
         self.metric.reset()
-        self.model.eval()
         if self.args.distributed:
             model = self.model.module
         else:
             model = self.model
-        logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
-        for i, (image, target, filename) in enumerate(self.val_loader):
-            image = image.to(self.device)
-            target = target.to(self.device)
+
+        torch.cuda.empty_cache()  # TODO check if it helps
+        model.eval()
+        for i, batch_data in enumerate(self.val_loader):
+
+            img_resized_list = batch_data['img_data']
+            target = batch_data['seg_label']
+            filename = batch_data['info']
+            size = target.size()[-2:]
 
             with torch.no_grad():
-                outputs = model(image)
-            self.metric.update(outputs[0], target)
-            pixAcc, mIoU = self.metric.get()
-            logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
-                i + 1, pixAcc * 100, mIoU * 100))
+                segSize = (target.shape[1], target.shape[2])
+                scores = torch.zeros(1, self.num_class, segSize[0], segSize[1]).to(self.device).detach()
+                for image in img_resized_list:
+                    image = image.to(self.device)
+                    target = target.to(self.device)
+                    a, b = model(image)
+                    logits = a
+                    logits = F.interpolate(logits, size=size,
+                                           mode='bilinear', align_corners=True)
+                    scores += torch.softmax(logits, dim=1)
+                    # scores = scores + outimg / 6
+                    if self.flip:
+                        # print('use flip')
+                        image = torch.flip(image, dims=(3,))
+                        a, b = model(image)
+                        logits = a
+                        logits = torch.flip(logits, dims=(3,))
+                        logits = F.interpolate(logits, size=size,
+                                               mode='bilinear', align_corners=True)
+                        scores += torch.softmax(logits, dim=1)
 
-            if self.args.save_pred:
-                pred = torch.argmax(outputs[0], 1)
-                pred = pred.cpu().data.numpy()
+            self.metric.update(scores, target)
 
-                predict = pred.squeeze(0)
-                mask = get_color_pallete(predict, self.args.dataset)
-                mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
+        pixAcc, IoU, mIoU = self.metric.get()
+        logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.6f}".format(i + 1, pixAcc, mIoU))
+        IoU = IoU.detach().numpy()
+        num = IoU.size
+        di = dict(zip(range(num), IoU))
+        for k, v in di.items():
+            logger.info("{}: {}".format(k, v))
         synchronize()
+        return mIoU
 
 
 if __name__ == '__main__':
