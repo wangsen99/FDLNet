@@ -368,7 +368,7 @@ class Trainer(object):
 
         torch.cuda.empty_cache()  # TODO check if it helps
         model.eval()
-        for i, batch_data in enumerate(self.val_loader):
+        for i, batch_data in enumerate(tqdm(self.val_loader, ascii= True)):
 
             img_resized_list = batch_data['img_data']
             target = batch_data['seg_label']

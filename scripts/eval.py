@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sys
+from tqdm import tqdm
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = os.path.split(cur_path)[0]
@@ -73,7 +74,7 @@ class Evaluator(object):
 
         torch.cuda.empty_cache()  # TODO check if it helps
         model.eval()
-        for i, batch_data in enumerate(self.val_loader):
+        for i, batch_data in enumerate(tqdm(self.val_loader, ascii= True)):
 
             img_resized_list = batch_data['img_data']
             target = batch_data['seg_label']
