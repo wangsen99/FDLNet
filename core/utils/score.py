@@ -55,7 +55,7 @@ class SegmentationMetric(object):
         pixAcc = 1.0 * self.total_correct / (2.220446049250313e-16 + self.total_label)  # remove np.spacing(1)
         IoU = 1.0 * self.total_inter / (2.220446049250313e-16 + self.total_union)
         mIoU = IoU.mean().item()
-        return pixAcc, mIoU
+        return pixAcc, IoU, mIoU
 
     def reset(self):
         """Resets the internal evaluation result to initial state."""
