@@ -23,6 +23,7 @@ class SegmentationDataset(object):
             transforms.ToTensor(),
             transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
         ])
+        self.multiscale = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 
     def _val_sync_transform(self, img, mask):
         outsize = self.crop_size
